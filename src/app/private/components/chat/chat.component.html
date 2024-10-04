@@ -1,0 +1,84 @@
+<div class="flex-auto flex flex-flow-column p-2 bg-base-200 rounded-box h-full">
+  <div
+    #chat
+    class="mt-auto relative chat-height chat-height relative overflow-y-auto z-10"
+  >
+    <div class="flex flex-flow-column">
+      @if (loaderMessages$ | async) { @for (item of [1,2,3]; track $index) {
+      <div class="chat chat-start">
+        <div class="chat-image avatar">
+          <div class="skeleton w-10 h-10 rounded-full"></div>
+        </div>
+        <div class="skeleton chat-bubble inline w-1/5 h-10"></div>
+
+        <div class="skeleton chat-footer inline w-1/5 mt-2 h-4"></div>
+      </div>
+
+      <div class="chat chat-end">
+        <div class="chat-image avatar">
+          <div class="skeleton w-10 h-10 rounded-full"></div>
+        </div>
+        <div class="skeleton chat-bubble inline w-1/5 h-10"></div>
+
+        <div class="skeleton chat-footer inline w-1/5 mt-2 h-4"></div>
+      </div>
+      } } @for (message of messages$ | async; track $index ) { @if
+      (message?.user?.username === user?.username) {
+      <div class="chat chat-start">
+        <div class="chat-image avatar">
+          <div class="w-10 rounded-full">
+            <img
+              alt="Tailwind CSS chat bubble component"
+              src="https://daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg"
+            />
+          </div>
+        </div>
+        <div class="chat-bubble bg-primary">{{ message.text }}</div>
+        <div class="chat-footer opacity-50">
+          {{ message.user.username }} at
+          {{ message.timestamp | date : "HH:mm" }}
+        </div>
+      </div>
+      } @else {
+      <div class="chat chat-end">
+        <div class="chat-image avatar">
+          <div class="w-10 rounded-full">
+            <img
+              alt="Tailwind CSS chat bubble component"
+              src="https://daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg"
+            />
+          </div>
+        </div>
+        <div class="chat-bubble">{{ message.text }}</div>
+        <div class="chat-footer opacity-50">
+          {{ message?.user?.username }} at
+          {{ message?.timestamp | date : "dd-MM-yyyy HH:mm" }}
+        </div>
+      </div>
+      } }
+    </div>
+
+    <div class="divider divider-accent">New Messages</div>
+  </div>
+  <form
+    class="absolute w-full relative"
+    [formGroup]="form"
+    (ngSubmit)="sendMessage()"
+  >
+    <div class="flex gap-2">
+      <input
+        [formControl]="controls.message"
+        type="text"
+        placeholder="Type here"
+        class="input input-bordered input-primary w-full"
+      />
+      <button
+        [disabled]="!form.valid"
+        type="submit"
+        class="btn btn-primary w-12"
+      >
+        <span class="material-icons-round">reply</span>
+      </button>
+    </div>
+  </form>
+</div>
