@@ -1,0 +1,9 @@
+-- Your SQL goes here
+CREATE TABLE channels (
+  id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+  server_id INTEGER NOT NULL,
+  name TEXT NOT NULL,
+  description TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+  FOREIGN KEY (server_id) REFERENCES servers (id) ON DELETE CASCADE
+);

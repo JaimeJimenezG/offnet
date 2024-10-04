@@ -10,7 +10,7 @@ pub async fn check() -> impl Responder {
 
 #[get("/users")]
 pub async fn get_users(repo: web::Data<Arc<Repository>>) -> impl Responder {
-    match repo.get_users() {
+    match repo.users.get_users() {
         Ok(users) => {
             println!("Usuarios obtenidos exitosamente: {:?}", users);
             HttpResponse::Ok().json(users)

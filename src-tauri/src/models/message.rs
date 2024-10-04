@@ -1,12 +1,13 @@
-use serde::{Deserialize, Serialize};
+use diesel::prelude::*;
+use crate::schema::messages;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Queryable, Selectable)]
+#[diesel(table_name = messages)]
+#[diesel(check_for_backend(diesel::sqlite::Sqlite))]
 pub struct Message {
-    pub id: i64,
+    pub id: i32,
+    pub channel_id: i32,
+    pub user_id: i32,
     pub content: String,
-    pub user_id: i64,
-    pub peer_id: i64,
-    pub server_id: i64,
-    pub created_at: i64,
-    pub updated_at: i64,
+    pub created_at: chrono::NaiveDateTime,
 }

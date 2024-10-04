@@ -6,9 +6,8 @@ use std::thread;
 
 mod api;
 mod db;
-mod models;
 mod schema;
-
+pub mod models;
 
 fn start_api(repo: Arc<Repository>) -> std::io::Result<()> {
     println!("Iniciando API");
