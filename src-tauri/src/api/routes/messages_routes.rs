@@ -25,7 +25,7 @@ pub async fn create_message(repo: web::Data<Arc<Repository>>, message: web::Json
     }
 }
 
-#[get("/channels/{channel_id}/messages")]
+#[get("/messages/channels/{channel_id}")]
 pub async fn get_messages_by_channel(
     repo: web::Data<Arc<Repository>>,
     path: web::Path<i32>

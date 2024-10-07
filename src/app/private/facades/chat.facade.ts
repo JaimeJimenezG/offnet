@@ -36,10 +36,9 @@ export class ChatFacade {
         }
     }
 
-    loadMessages(): void {
-        this.apiService.get<Message[]>('messages').pipe(take(1)).subscribe({
+    loadMessagesByChannel(channelId: number): void {
+        this.apiService.get<Message[]>(`messages/channels/${channelId}`).pipe(take(1)).subscribe({
             next: (mensajes: Message[]) => {
-                console.log(mensajes);
                 this.chatState.messages$.next(mensajes);
                 this.chatState.loaderMessages$.next(false);
             },
@@ -49,6 +48,4 @@ export class ChatFacade {
             }
         });
     }
-
-
 }

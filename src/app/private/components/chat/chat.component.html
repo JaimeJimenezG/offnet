@@ -1,63 +1,80 @@
 <div class="flex-auto flex flex-flow-column p-2 bg-base-200 rounded-box h-full">
-  <div #chat class="mt-auto relative chat-height chat-height relative overflow-y-auto z-10">
-      @if (loaderMessages$ | async) { @for (item of [1,2,3]; track $index) {
-      <div class="chat chat-start">
-        <div class="chat-image avatar">
-          <div class="skeleton w-10 h-10 rounded-full"></div>
-        </div>
-        <div class="skeleton chat-bubble inline w-1/5 h-10"></div>
+  <div class="p-2 bg-base-300 rounded-lg flex justify-between items-center">
+    <div>
+      <h2 class="inline-block">{{ (currentChannel$ | async)?.name }}</h2> |
+      <span class="inline-block text-sm text-opacity-70"> {{ 1 }} online</span>
+    </div>
+    <button class="btn btn-ghost btn-sm" (click)="togglePinnedMessages()">
+      <span class="material-icons-round">push_pin</span>
+      Mensajes fijados
+    </button>
+  </div>
+  <div #chat class="mt-auto relative relative overflow-y-auto z-10">
+    @if (loaderMessages$ | async) { @for (item of [1,2,3]; track $index) {
+    <div class="chat chat-start">
+      <div class="chat-image avatar">
+        <div class="skeleton w-10 h-10 rounded-full"></div>
+      </div>
+      <div class="skeleton chat-bubble inline w-1/5 h-10"></div>
 
-        <div class="skeleton chat-footer inline w-1/5 mt-2 h-4"></div>
-      </div>
+      <div class="skeleton chat-footer inline w-1/5 mt-2 h-4"></div>
+    </div>
 
-      <div class="chat chat-end">
-        <div class="chat-image avatar">
-          <div class="skeleton w-10 h-10 rounded-full"></div>
-        </div>
-        <div class="skeleton chat-bubble inline w-1/5 h-10"></div>
+    <div class="chat chat-end">
+      <div class="chat-image avatar">
+        <div class="skeleton w-10 h-10 rounded-full"></div>
+      </div>
+      <div class="skeleton chat-bubble inline w-1/5 h-10"></div>
 
-        <div class="skeleton chat-footer inline w-1/5 mt-2 h-4"></div>
-      </div>
-      } } @for (message of messages$ | async; track $index ) { @if
-      (message?.user?.name === user?.name) {
-      <div class="chat chat-start">
-        <div class="chat-image avatar">
-          <div class="w-10 rounded-full">
-            <img alt="Tailwind CSS chat bubble component"
-              src="https://daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" />
-          </div>
-        </div>
-        <div class="chat-bubble bg-primary">{{ message.content }}</div>
-        <div class="chat-footer opacity-50">
-          {{ message.user?.name }} at
-          {{ message.created_at | date : "HH:mm" }}
+      <div class="skeleton chat-footer inline w-1/5 mt-2 h-4"></div>
+    </div>
+    } } @for (message of messages$ | async; track $index ) { @if
+    (message?.user?.name === user?.name) {
+    <div class="chat chat-start">
+      <div class="chat-image avatar">
+        <div class="w-10 rounded-full">
+          <img alt="Tailwind CSS chat bubble component"
+            src="https://daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" />
         </div>
       </div>
-      } @else {
-      <div class="chat chat-end">
-        <div class="chat-image avatar">
-          <div class="w-10 rounded-full">
-            <img alt="Tailwind CSS chat bubble component"
-              src="https://daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" />
-          </div>
-        </div>
-        <div class="chat-bubble">{{ message.content }}</div>
-        <div class="chat-footer opacity-50">
-          {{ message?.user?.name }} at
-          {{ message?.created_at | date : "dd-MM-yyyy HH:mm" }}
+      <div class="chat-bubble bg-primary">{{ message.content }}</div>
+      <div class="chat-footer opacity-50">
+        {{ message.user?.name }} at
+        {{ message.created_at | date : "HH:mm" }}
+      </div>
+    </div>
+    } @else {
+    <div class="chat chat-end">
+      <div class="chat-image avatar">
+        <div class="w-10 rounded-full">
+          <img alt="Tailwind CSS chat bubble component"
+            src="https://daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" />
         </div>
       </div>
-      } }
+      <div class="chat-bubble">{{ message.content }}</div>
+      <div class="chat-footer opacity-50">
+        {{ message?.user?.name }} at
+        {{ message?.created_at | date : "dd-MM-yyyy HH:mm" }}
+      </div>
+    </div>
+    } }
 
     <div class="divider divider-accent">New Messages</div>
   </div>
-  <form class="absolute w-full relative" [formGroup]="form" (ngSubmit)="sendMessage()">
+  <form class="p-2 bg-base-300 rounded-lg" [formGroup]="form" (ngSubmit)="sendMessage()">
     <div class="flex gap-2">
-      <input [formControl]="controls.message" type="text" placeholder="Type here"
-        class="input input-bordered input-primary w-full" />
+      <input [formControl]="form.controls.message" type="text" placeholder="Escribe aquí"
+        class="input input-bordered input-primary flex-grow" />
+      <button class="btn btn-primary w-12" (click)="startCall()">Iniciar llamada</button>
+      <button class="btn btn-primary w-12" (click)="respondCall()">Responder llamada</button>
+
       <button [disabled]="!form.valid" type="submit" class="btn btn-primary w-12">
         <span class="material-icons-round">reply</span>
       </button>
     </div>
   </form>
+</div>
+<div class="video-call-container">
+  <video #localVideo autoplay playsinline></video>
+  <video #remoteVideo autoplay playsinline></video>
 </div>

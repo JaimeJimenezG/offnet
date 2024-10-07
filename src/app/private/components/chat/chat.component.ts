@@ -6,6 +6,7 @@ import {
   ElementRef,
   OnInit,
   ViewChild,
+  OnDestroy,
 } from '@angular/core';
 import {
   FormControl,
@@ -15,6 +16,9 @@ import {
 } from '@angular/forms';
 import { LoginState } from '../../../public/states/login.state';
 import { ChatFacade } from '../../facades/chat.facade';
+import { ChannelFacade } from '../../facades/channel.facade';
+import { Subject, Subscription, takeUntil } from 'rxjs';
+import { WebrtcService } from '../../../core/services/webrtc.servce';
 
 @Component({
   selector: 'app-chat',
@@ -24,51 +28,102 @@ import { ChatFacade } from '../../facades/chat.facade';
   styleUrl: './chat.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ChatComponent implements OnInit, AfterViewInit {
-  private CHANEL = 'messages';
+export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+  private remoteStreamSubscription: Subscription | null = null;
 
-  private _controls = {
+  readonly form = new FormGroup({
     message: new FormControl('', [Validators.required]),
-  };
-
-  private _form = new FormGroup(this._controls);
+  });
 
   readonly messages$ = this.chatFacade.messages$;
-
   readonly loaderMessages$ = this.chatFacade.loaderMessages$;
-
   readonly user = this.loginState.user$.value;
+  readonly currentChannel$ = this.channelFacade.currentChannel$;
 
-  @ViewChild('chat') private chat!: ElementRef;
+  offer: RTCSessionDescriptionInit | null = null;
 
-  constructor(private chatFacade: ChatFacade, private loginState: LoginState) { }
+  showPinnedMessages = false;
 
-  get controls() {
-    return this._controls;
+  @ViewChild('chat', { static: true }) private chatElement!: ElementRef<HTMLDivElement>;
+  @ViewChild('localVideo') localVideo!: ElementRef<HTMLVideoElement>;
+  @ViewChild('remoteVideo') remoteVideo!: ElementRef<HTMLVideoElement>;
+
+  constructor(
+    private chatFacade: ChatFacade,
+    private loginState: LoginState,
+    private channelFacade: ChannelFacade,
+    private webrtcService: WebrtcService
+  ) { }
+
+  ngOnInit(): void {
+    this.channelFacade.currentChannel$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(channel => {
+        if (channel?.id) {
+          this.chatFacade.loadMessagesByChannel(channel.id);
+        }
+      });
+
+    this.messages$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        setTimeout(() => this.scrollToBottom());
+      });
+
+    this.remoteStreamSubscription = this.webrtcService.obtainStreamRemote().subscribe(
+      stream => {
+        if (stream && this.remoteVideo) {
+          this.remoteVideo.nativeElement.srcObject = stream;
+        }
+      }
+    );
   }
 
-  get form() {
-    return this._form;
-  }
-
-  ngOnInit() {
-    this.chatFacade.loadMessages();
-  }
-
-  ngAfterViewInit() {
+  ngAfterViewInit(): void {
     this.scrollToBottom();
   }
 
-  sendMessage() {
-    if (this._form.valid) {
-      this.chatFacade.sendMessage(this._controls.message.value!, this.user!);
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
 
-      this._form.reset();
-      this.scrollToBottom();
+    if (this.remoteStreamSubscription) {
+      this.remoteStreamSubscription.unsubscribe();
+    }
+    this.webrtcService.closeConnection();
+  }
+
+  sendMessage(): void {
+    if (this.form.valid && this.user) {
+      this.chatFacade.sendMessage(this.form.get('message')?.value!, this.user);
+      this.form.reset();
     }
   }
 
-  scrollToBottom(): void {
-    this.chat.nativeElement.scrollTop = this.chat.nativeElement.scrollHeight;
+  togglePinnedMessages(): void {
+    this.showPinnedMessages = !this.showPinnedMessages;
+    // Aquí deberías cargar los mensajes fijados si showPinnedMessages es true
+  }
+
+  private scrollToBottom(): void {
+    const chatElement = this.chatElement.nativeElement;
+    chatElement.scrollTo({
+      top: chatElement.scrollHeight,
+      behavior: 'smooth'
+    });
+  }
+
+  async startCall(): Promise<void> {
+    await this.webrtcService.startCall();
+    this.offer = await this.webrtcService.generateOffer();
+    console.log('Oferta generada:', this.offer);  }
+
+  async respondCall(): Promise<void> {
+    if (this.offer) {
+      await this.webrtcService.respondCall(this.offer);
+    } else {
+      console.error('No hay oferta disponible para responder');
+    }
   }
 }
