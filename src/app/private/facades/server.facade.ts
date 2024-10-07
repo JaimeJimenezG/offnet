@@ -2,16 +2,24 @@ import { Injectable } from '@angular/core';
 import { ServerState } from '../states/server.state';
 import { Server, NewServerAttrs } from '../models/server.model';
 import { ApiService } from '../../core/services/api.service';
+import { tap } from 'rxjs';
+import { ChannelFacade } from './channel.facade';
 
 @Injectable({
     providedIn: 'root'
 })
 export class ServerFacade {
     readonly servers$ = this.serverState.servers$;
-    readonly currentServer$ = this.serverState.currentServer$;
+    readonly currentServer$ = this.serverState.currentServer$.pipe(
+        tap(server => {
+            if (server) {
+                this.channelFacade.loadChannels(server.id);
+            }
+        })
+    );
     readonly loaderServers$ = this.serverState.loaderServers$;
 
-    constructor(private serverState: ServerState, private apiService: ApiService) { }
+    constructor(private serverState: ServerState, private apiService: ApiService, private channelFacade: ChannelFacade) { }
 
     loadServers(): void {
         this.serverState.loaderServers$.next(true);

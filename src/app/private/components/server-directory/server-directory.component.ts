@@ -17,4 +17,6 @@ import { UserActionsComponent } from './user-actions/user-actions.component';
     styleUrl: './server-directory.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ServerDirectoryComponent { }
+export class ServerDirectoryComponent {
+
+}

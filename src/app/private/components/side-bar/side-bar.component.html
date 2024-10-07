@@ -1,8 +1,8 @@
 @if (sideBarActive) {
 <ul class="menu bg-base-200 rounded-box h-full relative">
   @for (server of servers$ | async; track server.id) {
-  <li>
-    <img [src]="server.image_url" alt="Server Image" />
+  <li (click)="changeServer(server)">
+    <img class="p-1 w-16 h-16 rounded-full" [src]="server.image_url" alt="Server Image" />
   </li>
   }
 </ul>
