@@ -36,7 +36,7 @@ export class LoginComponent {
   tryToLogin() {
     if (this._loginForm.valid) {
       this.loginState.tryLogin({
-        username: this._controls.username.value!,
+        name: this._controls.username.value!,
         //password: this._controls.password.value as string
       });
       this.navigateToHome();

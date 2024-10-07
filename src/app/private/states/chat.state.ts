@@ -23,13 +23,4 @@ export class ChatState {
   get loaderMessages$() {
     return this._state.loaderMessages$;
   }
-
-  listenerMessages(chanel: string) {}
-
-  loadMessages(chanel: string) {
-    this._state.loaderMessages$.next(true);
-    this._state.loaderMessages$.next(false);
-  }
-
-  emitMessage(chanel: string, message: Message) {}
 }

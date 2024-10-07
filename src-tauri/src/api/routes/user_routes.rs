@@ -1,12 +1,7 @@
 use std::sync::Arc;
-
-use actix_web::{get, web, HttpResponse, Responder};
+use actix_web::{get, post, web, HttpResponse, Responder};
 use crate::db::repository::Repository;
-
-#[get("/")]
-pub async fn check() -> impl Responder {
-    HttpResponse::Ok().body("¡Hola desde la API de Offnet!")
-}
+use crate::models::user::NewUser;
 
 #[get("/users")]
 pub async fn get_users(repo: web::Data<Arc<Repository>>) -> impl Responder {
@@ -19,5 +14,13 @@ pub async fn get_users(repo: web::Data<Arc<Repository>>) -> impl Responder {
             eprintln!("Error al obtener usuarios: {}", e);
             HttpResponse::InternalServerError().body(format!("Error al obtener usuarios: {}", e))
         },
+    }
+}
+
+#[post("/users")]
+pub async fn create_user(repo: web::Data<Arc<Repository>>, user: web::Json<NewUser>) -> impl Responder {
+    match repo.users.create_user(&user.into_inner()) {
+        Ok(user) => HttpResponse::Ok().json(user),
+        Err(e) => HttpResponse::InternalServerError().body(format!("Error al crear usuario: {}", e)),
     }
 }

@@ -1,12 +1,12 @@
 export class User {
-    username: string;
+    name: string;
     //password: string;
     constructor(attrs: UserAttrs) {
-        this.username = attrs.username;
+        this.name = attrs.name;
         //this.password = attrs.password;
     }
 }
 export interface UserAttrs {
-    username: string;
+    name: string;
     password: string;
 }
