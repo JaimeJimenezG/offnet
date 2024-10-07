@@ -26,6 +26,7 @@ diesel::table! {
         name -> Text,
         description -> Nullable<Text>,
         created_at -> Timestamp,
+        image_url -> Text,
     }
 }
 

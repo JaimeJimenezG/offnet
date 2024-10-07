@@ -10,6 +10,7 @@ pub struct Server {
     pub name: String,
     pub description: Option<String>,
     pub created_at: chrono::NaiveDateTime,
+    pub image_url: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Queryable, Insertable, Clone)]
@@ -17,4 +18,5 @@ pub struct Server {
 pub struct NewServer {
     pub name: String,
     pub description: Option<String>,
+    pub image_url: String,
 }

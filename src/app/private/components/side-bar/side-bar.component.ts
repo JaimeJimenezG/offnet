@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ServerState } from '../../states/server.state';
 
 @Component({
     selector: 'app-side-bar',
@@ -13,12 +14,13 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 })
 export class SideBarComponent {
     private _sideBarActive = true;
-    
+    readonly servers$ = this.serverState.servers$;
+
     get sideBarActive() {
         return this._sideBarActive;
     }
 
-    constructor() {
+    constructor(private serverState: ServerState) {
     }
 
 
