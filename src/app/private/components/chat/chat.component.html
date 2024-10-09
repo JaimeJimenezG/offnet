@@ -16,16 +16,13 @@
         <div class="skeleton w-10 h-10 rounded-full"></div>
       </div>
       <div class="skeleton chat-bubble inline w-1/5 h-10"></div>
-
       <div class="skeleton chat-footer inline w-1/5 mt-2 h-4"></div>
     </div>
-
     <div class="chat chat-end">
       <div class="chat-image avatar">
         <div class="skeleton w-10 h-10 rounded-full"></div>
       </div>
       <div class="skeleton chat-bubble inline w-1/5 h-10"></div>
-
       <div class="skeleton chat-footer inline w-1/5 mt-2 h-4"></div>
     </div>
     } } @for (message of messages$ | async; track $index ) { @if
@@ -58,16 +55,19 @@
       </div>
     </div>
     } }
-
     <div class="divider divider-accent">New Messages</div>
   </div>
   <form class="p-2 bg-base-300 rounded-lg" [formGroup]="form" (ngSubmit)="sendMessage()">
     <div class="flex gap-2">
       <input [formControl]="form.controls.message" type="text" placeholder="Escribe aquí"
         class="input input-bordered input-primary flex-grow" />
-      <button class="btn btn-primary w-12" (click)="startCall()">Iniciar llamada</button>
-      <button class="btn btn-primary w-12" (click)="respondCall()">Responder llamada</button>
-
+      @if (!isCallActive) {
+        <button type="button" class="btn btn-primary w-12" (click)="startCall()">Llamar</button>
+      } @else {
+        <button type="button" class="btn btn-error w-12" (click)="endCall()">Colgar</button>
+      }
+        <button type="button" class="btn btn-success w-12" (click)="respondCall()">Responder</button>
+      
       <button [disabled]="!form.valid" type="submit" class="btn btn-primary w-12">
         <span class="material-icons-round">reply</span>
       </button>
@@ -75,6 +75,6 @@
   </form>
 </div>
 <div class="video-call-container">
-  <video #localVideo autoplay playsinline></video>
+  <video #localVideo autoplay playsinline muted></video>
   <video #remoteVideo autoplay playsinline></video>
 </div>

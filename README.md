@@ -1,11 +1,11 @@
-# 🚀 Offnet
+{# 🚀 Offnet
 
 ![Versión](https://img.shields.io/badge/versión-0.1.0-blue.svg)
 ![Licencia](https://img.shields.io/badge/licencia-MIT-green.svg)
 
 ## 🌟 Descripción
 
-Offnet es una aplicación de escritorio moderna y elegante construida con Angular y Tauri. Combina la potencia del desarrollo web con el rendimiento nativo para ofrecer una experiencia de usuario excepcional.
+Offnet es una aplicación de escritorio dedicada a ser una alternativa de chat de voz, video y transmision de archivos, usando clientes sockets y conexiones P2P. 
 
 ## 🛠️ Tecnologías principales
 
@@ -24,11 +24,28 @@ Offnet es una aplicación de escritorio moderna y elegante construida con Angula
 ## 🏁 Inicio rápido
 
 1. Clona el repositorio
-2. Instala las dependencias:
+2. Instala las dependencias (Arch):
    ```
+    sudo pacman -Syu
+   ```
+   ```
+   sudo pacman -S --needed \
+       webkit2gtk-4.1 \
+       base-devel \
+       curl \
+       wget \
+       file \
+       openssl \
+       appmenu-gtk-module \
+       gtk3 \
+       libappindicator-gtk3 \
+       librsvg \
+       libvips
+   ```
+   ```  
    npm install
    ```
-3. Inicia la aplicación en modo desarrollo:
+4. Inicia la aplicación en modo desarrollo:
    ```
    npm run tauri dev
    ```
@@ -44,10 +61,6 @@ npm run tauri build
 ## 🤝 Contribución
 
 ¡Las contribuciones estan cerradas!
-
-## 📄 Licencia
-
-Este proyecto está licenciado bajo la Licencia MIT. Consulta el archivo `LICENSE` para más detalles.
 
 ## 🙏 Agradecimientos
 

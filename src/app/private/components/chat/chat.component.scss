@@ -2,3 +2,20 @@
   display: flex;
   width: 100%;
 }
+
+.video-call-container {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  flex-direction: column;
+  z-index: 1000;
+
+  video {
+    width: 200px;
+    height: 150px;
+    margin-bottom: 10px;
+    border: 2px solid #fff;
+    border-radius: 8px;
+  }
+}

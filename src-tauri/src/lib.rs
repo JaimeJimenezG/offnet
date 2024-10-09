@@ -1,17 +1,36 @@
-use api::routes::channel_routes::{create_channel, get_channel_by_id, get_channels, get_channels_by_server};
+use actix_cors::Cors;
+use actix_web::{web, App, HttpServer};
+use api::routes::channel_routes::{
+    create_channel, get_channel_by_id, get_channels, get_channels_by_server,
+};
 use api::routes::messages_routes::{create_message, get_messages, get_messages_by_channel};
-use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 use api::routes::server_routes::{create_server, get_server_by_id, get_servers};
 use api::routes::user_routes::{create_user, get_users};
-use db::connection::establish_connection;
-use actix_web::{web, App, HttpServer};
 use api::routes::util_routes::check;
+use db::connection::establish_connection;
 use db::repository::Repository;
+use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 use rusqlite::Connection;
-use actix_cors::Cors;
+use serde::{Deserialize, Serialize};
+use socketioxide::extract::{Data, SocketRef};
+use socketioxide::SocketIo;
 use std::path::Path;
 use std::sync::Arc;
 use std::thread;
+#[allow(non_snake_case)]
+#[derive(Debug, Serialize, Deserialize)]
+struct IceCandidate {
+    candidate: String,
+    sdpMLineIndex: i32,
+    sdpMid: String,
+    usernameFragment: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct SdpType {
+    sdp: String,
+    r#type: String,
+}
 
 mod api;
 mod db;
@@ -25,8 +44,41 @@ fn start_api(repo: Arc<Repository>) -> std::io::Result<()> {
     let repo_data = web::Data::new(repo);
     thread::spawn(move || {
         let rt = actix_rt::Runtime::new().unwrap();
+
         rt.block_on(async {
-            HttpServer::new(move || {
+            let (layer, io) = SocketIo::new_layer();
+
+            io.ns("/", |s: SocketRef| {
+                println!("socket connected0: {}", s.id);
+
+                s.on("offer", |_socket: SocketRef, Data(offer): Data<SdpType>| async move {
+                    println!("Oferta recibida: {:?}", offer);
+                    _socket.broadcast().emit("offer", offer).ok();
+                });
+
+                s.on("answer", |socket: SocketRef, Data(answer): Data<SdpType>| async move {
+                    println!("Oferta recibida: {:?}", answer);
+                    socket.broadcast().emit("answer", answer).ok();
+                });
+
+                s.on("ice-candidate", |socket: SocketRef, Data(candidate): Data<IceCandidate>| async move {
+                    println!("Oferta recibida: {:?}", candidate);
+                    socket.broadcast().emit("ice-candidate", candidate).ok();
+                });
+            });
+
+            let app = axum::Router::new()
+                .nest_service("/", tower_http::services::ServeDir::new("dist"))
+                .layer(
+                    tower::ServiceBuilder::new()
+                        .layer(tower_http::cors::CorsLayer::permissive()) // Habilitar política CORS
+                        .layer(layer),
+                );
+
+            let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
+            let socket_server = axum::serve(listener, app);
+
+            let http_server = HttpServer::new(move || {
                 let cors = Cors::default()
                     .allow_any_origin()
                     .allow_any_method()
@@ -52,12 +104,16 @@ fn start_api(repo: Arc<Repository>) -> std::io::Result<()> {
             })
             .bind("127.0.0.1:8080")
             .unwrap()
-            .run()
-            .await
-            .unwrap();
+            .run();
+            println!("API HTTP iniciada en puerto 8080 y servidor SocketIO en puerto 3000");
+
+            // Ejecutar ambos servidores concurrentemente y manejar los resultados
+            if let Err(e) = tokio::try_join!(socket_server, http_server) {
+                eprintln!("Error al ejecutar los servidores: {}", e);
+            }
         });
     });
-    println!("API iniciada en un hilo separado");
+    
     Ok(())
 }
 

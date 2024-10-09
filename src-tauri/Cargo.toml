@@ -32,3 +32,11 @@ dotenv = "0.15.0"
 diesel_migrations = "2.1.0"
 chrono = { version = "0.4", features = ["serde"] }
 actix-cors = "0.6.4"
+socketioxide = "0.14.1"	
+tokio = { version = "1.28", features = ["full"] }
+futures = "0.3"
+tokio-tungstenite = "0.19"
+futures-util = "0.3"
+axum = "0.7.7"
+tower-http = { version = "0.5.0", features = ["cors", "fs"] }
+tower = "0.4.12"
