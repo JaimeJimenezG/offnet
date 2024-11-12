@@ -62,12 +62,13 @@
       <input [formControl]="form.controls.message" type="text" placeholder="Escribe aquí"
         class="input input-bordered input-primary flex-grow" />
       @if (!isCallActive) {
-        <button type="button" class="btn btn-primary w-12" (click)="startCall()">Llamar</button>
+      <button type="button" class="btn btn-primary w-12" (click)="startCall()">Llamar</button>
       } @else {
-        <button type="button" class="btn btn-error w-12" (click)="endCall()">Colgar</button>
+      <button type="button" class="btn btn-error w-12" (click)="endCall()">Colgar</button>
       }
-        <button type="button" class="btn btn-success w-12" (click)="respondCall()">Responder</button>
-      
+      @if (incomingCall$ | async) {
+      <button type="button" class="btn btn-success w-12" (click)="respondCall()">Responder</button>
+      }
       <button [disabled]="!form.valid" type="submit" class="btn btn-primary w-12">
         <span class="material-icons-round">reply</span>
       </button>

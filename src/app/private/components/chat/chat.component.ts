@@ -18,7 +18,7 @@ import { LoginState } from '../../../public/states/login.state';
 import { ChatFacade } from '../../facades/chat.facade';
 import { ChannelFacade } from '../../facades/channel.facade';
 import { Subject, Subscription, takeUntil } from 'rxjs';
-import { WebrtcService } from '../../../core/services/webrtc.servce';
+import { WebrtcService } from '../../../core/services/webrtc.service';
 import { SocketService } from '../../../core/services/socket.service';
 
 @Component({
@@ -42,9 +42,9 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly loaderMessages$ = this.chatFacade.loaderMessages$;
   readonly user = this.loginState.user$.value;
   readonly currentChannel$ = this.channelFacade.currentChannel$;
-
+  readonly incomingCall$ = this.webrtcService.getIncomingCall();
+  
   showPinnedMessages = false;
-  incomingCall = false;
   isCallActive = false;
 
   @ViewChild('chat', { static: true }) private chatElement!: ElementRef<HTMLDivElement>;
@@ -63,7 +63,6 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     this.setupChannelSubscription();
     this.setupMessagesSubscription();
     this.setupRemoteStreamSubscription();
-    this.setupIncomingCallSubscription();
   }
 
   ngAfterViewInit(): void {
@@ -89,9 +88,9 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   async startCall(): Promise<void> {
+    this.isCallActive = true;
     console.log('Iniciando llamada...');
     await this.webrtcService.startCall();
-    this.isCallActive = true;
     const localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
     if (this.localVideo && this.localVideo.nativeElement) {
       this.localVideo.nativeElement.srcObject = localStream;
@@ -103,7 +102,6 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     console.log('Respondiendo llamada...');
     await this.webrtcService.respondCall();
     this.isCallActive = true;
-    this.incomingCall = false;
     const localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
     if (this.localVideo && this.localVideo.nativeElement) {
       this.localVideo.nativeElement.srcObject = localStream;
@@ -148,18 +146,6 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
         if (stream && this.remoteVideo && this.remoteVideo.nativeElement) {
           this.remoteVideo.nativeElement.srcObject = stream;
           console.log('Stream remoto asignado al elemento de video');
-        }
-      }
-    );
-  }
-
-  private setupIncomingCallSubscription(): void {
-    this.incomingCallSubscription = this.webrtcService.getIncomingCall().subscribe(
-      incoming => {
-        this.incomingCall = incoming;
-        if (incoming) {
-          console.log('Llamada entrante');
-          // Aquí podrías mostrar una notificación o un diálogo para el usuario
         }
       }
     );
