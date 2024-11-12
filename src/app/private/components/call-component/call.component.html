@@ -1,0 +1,26 @@
+<div class="call-container">
+  <div class="header">
+    <button class="btn btn-ghost" (click)="goBack()">
+      <span class="material-icons-round">arrow_back</span>
+      Volver al chat
+    </button>
+  </div>
+  <div class="video-grid">
+    <div class="video-wrapper local-video">
+      <video #localVideo autoplay playsinline [muted]="'muted'"></video>
+      <div class="video-controls">
+        @if (!isCallActive) {
+          <button class="btn btn-primary" (click)="startCall()">Iniciar Llamada</button>
+        } @else {
+          <button class="btn btn-error" (click)="endCall()">Finalizar Llamada</button>
+        }
+        @if (incomingCall$ | async) {
+          <button class="btn btn-success" (click)="respondCall()">Responder</button>
+        }
+      </div>
+    </div>
+    <div class="video-wrapper remote-video">
+      <video #remoteVideo autoplay playsinline></video>
+    </div>
+  </div>
+</div>

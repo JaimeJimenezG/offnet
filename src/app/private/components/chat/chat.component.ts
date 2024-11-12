@@ -20,6 +20,7 @@ import { ChannelFacade } from '../../facades/channel.facade';
 import { Subject, Subscription, takeUntil } from 'rxjs';
 import { WebrtcService } from '../../../core/services/webrtc.service';
 import { SocketService } from '../../../core/services/socket.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-chat',
@@ -31,8 +32,6 @@ import { SocketService } from '../../../core/services/socket.service';
 })
 export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   private destroy$ = new Subject<void>();
-  private remoteStreamSubscription: Subscription | null = null;
-  private incomingCallSubscription: Subscription | null = null;
 
   readonly form = new FormGroup({
     message: new FormControl('', [Validators.required]),
@@ -48,21 +47,19 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   isCallActive = false;
 
   @ViewChild('chat', { static: true }) private chatElement!: ElementRef<HTMLDivElement>;
-  @ViewChild('localVideo') localVideo!: ElementRef<HTMLVideoElement>;
-  @ViewChild('remoteVideo') remoteVideo!: ElementRef<HTMLVideoElement>;
 
   constructor(
     private chatFacade: ChatFacade,
     private loginState: LoginState,
     private channelFacade: ChannelFacade,
     private webrtcService: WebrtcService,
+    private router: Router,
     private socketService: SocketService
   ) { }
 
   ngOnInit(): void {
     this.setupChannelSubscription();
     this.setupMessagesSubscription();
-    this.setupRemoteStreamSubscription();
   }
 
   ngAfterViewInit(): void {
@@ -72,8 +69,6 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
-    this.unsubscribeAll();
-    this.webrtcService.closeConnection();
   }
 
   sendMessage(): void {
@@ -85,40 +80,6 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
 
   togglePinnedMessages(): void {
     this.showPinnedMessages = !this.showPinnedMessages;
-  }
-
-  async startCall(): Promise<void> {
-    this.isCallActive = true;
-    console.log('Iniciando llamada...');
-    await this.webrtcService.startCall();
-    const localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-    if (this.localVideo && this.localVideo.nativeElement) {
-      this.localVideo.nativeElement.srcObject = localStream;
-      console.log('Stream local asignado al elemento de video');
-    }
-  }
-  
-  async respondCall(): Promise<void> {
-    console.log('Respondiendo llamada...');
-    await this.webrtcService.respondCall();
-    this.isCallActive = true;
-    const localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-    if (this.localVideo && this.localVideo.nativeElement) {
-      this.localVideo.nativeElement.srcObject = localStream;
-      console.log('Stream local asignado al elemento de video');
-    }
-  }
-  
-  endCall(): void {
-    console.log('Finalizando llamada...');
-    this.webrtcService.closeConnection();
-    this.isCallActive = false;
-    if (this.localVideo && this.localVideo.nativeElement) {
-      this.localVideo.nativeElement.srcObject = null;
-    }
-    if (this.remoteVideo && this.remoteVideo.nativeElement) {
-      this.remoteVideo.nativeElement.srcObject = null;
-    }
   }
 
   private setupChannelSubscription(): void {
@@ -139,18 +100,6 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
       });
   }
 
-  private setupRemoteStreamSubscription(): void {
-    this.remoteStreamSubscription = this.webrtcService.obtainStreamRemote().subscribe(
-      stream => {
-        console.log('Stream remoto recibido en el componente:', stream);
-        if (stream && this.remoteVideo && this.remoteVideo.nativeElement) {
-          this.remoteVideo.nativeElement.srcObject = stream;
-          console.log('Stream remoto asignado al elemento de video');
-        }
-      }
-    );
-  }
-
   private scrollToBottom(): void {
     const chatElement = this.chatElement.nativeElement;
     chatElement.scrollTo({
@@ -158,13 +107,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
       behavior: 'smooth'
     });
   }
-
-  private unsubscribeAll(): void {
-    if (this.remoteStreamSubscription) {
-      this.remoteStreamSubscription.unsubscribe();
-    }
-    if (this.incomingCallSubscription) {
-      this.incomingCallSubscription.unsubscribe();
-    }
+  startCall(): void {
+    this.router.navigate(['/call']);
   }
 }
