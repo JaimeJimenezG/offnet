@@ -10,6 +10,8 @@ use api::routes::util_routes::check;
 use db::connection::establish_connection;
 use db::repository::Repository;
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
+use models::user::User;
+use models::user_channel::NewUserChannel;
 use rusqlite::Connection;
 use serde::{Deserialize, Serialize};
 use socketioxide::extract::{Data, SocketRef};
@@ -24,6 +26,19 @@ struct IceCandidate {
     sdpMLineIndex: i32,
     sdpMid: String,
     usernameFragment: String,
+}
+
+#[allow(non_snake_case)]
+#[derive(Debug, Serialize, Deserialize)]
+struct LeaveChannelData {
+    channelId: i32,
+    userId: i32,
+}
+#[allow(non_snake_case)]
+#[derive(Debug, Serialize, Deserialize)]
+struct JoinChannelData {
+    channelId: i32,
+    user: User,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -41,7 +56,7 @@ pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("migrations");
 
 fn start_api(repo: Arc<Repository>) -> std::io::Result<()> {
     println!("Iniciando API");
-    let repo_data = web::Data::new(repo);
+    let repo_data = web::Data::new(repo.clone());
     thread::spawn(move || {
         let rt = actix_rt::Runtime::new().unwrap();
 
@@ -49,7 +64,7 @@ fn start_api(repo: Arc<Repository>) -> std::io::Result<()> {
             let (layer, io) = SocketIo::new_layer();
 
             io.ns("/", |s: SocketRef| {
-                println!("socket connected0: {}", s.id);
+                println!("socket connected: {}", s.id);
 
                 s.on("offer", |_socket: SocketRef, Data(offer): Data<SdpType>| async move {
                     println!("Oferta recibida: {:?}", offer);
@@ -64,6 +79,25 @@ fn start_api(repo: Arc<Repository>) -> std::io::Result<()> {
                 s.on("ice-candidate", |socket: SocketRef, Data(candidate): Data<IceCandidate>| async move {
                     println!("Oferta recibida: {:?}", candidate);
                     socket.broadcast().emit("ice-candidate", candidate).ok();
+                });
+
+                s.on("joinChannel", |socket: SocketRef, Data(data): Data<JoinChannelData>| async move {
+                    println!("Usuario se unió al canal: {:?}", data);
+                    
+                    let new_user_channel = NewUserChannel {
+                        user_id: data.user.id,
+                        channel_id: data.channelId,
+                        name: data.user.name,
+                    };
+
+                    repo.user_channels.join_channel(&new_user_channel).unwrap();
+
+                    socket.broadcast().emit("joinChannel", new_user_channel).ok();
+                });
+
+                s.on("leaveChannel", |socket: SocketRef, Data(data): Data<LeaveChannelData>| async move {
+                    println!("Usuario se salió del canal: {:?}", data);
+                    socket.broadcast().emit("leaveChannel", data).ok();
                 });
             });
 

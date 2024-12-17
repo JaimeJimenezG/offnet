@@ -1,6 +1,26 @@
 <ul class="menu bg-base-200 rounded-box w-full">
   @for (channel of channels$ | async; track channel.id) {
-    <li (click)="changeChannel(channel)"><a class="bg-base-300 rounded-box m-1">{{ channel.name }}</a></li>
+    <li>
+      <a [class.active]="isActiveChannel(channel)" 
+         class="bg-base-300 rounded-box m-1"
+         (click)="changeChannel(channel)">
+        <div class="flex justify-between items-center w-full">
+          <span>{{ channel.name }}</span>
+          <div class="badge badge-primary">
+            {{ channel.connectedUsers?.length || 0 }}
+          </div>
+        </div>
+      </a>
+        <ul class="pl-4">
+          @for (user of channel.connectedUsers; track user.id) {
+            <li class="text-sm opacity-70">
+              <span class="flex items-center gap-2">
+                <div class="w-2 h-2 rounded-full bg-success"></div>
+                {{ user.name }}
+              </span>
+            </li>
+          }
+        </ul>
+    </li>
   }
-  <li>
 </ul>

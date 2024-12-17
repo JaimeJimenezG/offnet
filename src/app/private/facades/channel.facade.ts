@@ -1,8 +1,9 @@
-import { Injectable } from '@angular/core';
+import { Injectable, OnInit } from '@angular/core';
 import { Channel, NewChannelAttrs } from '../models/channel.model';
 import { ApiService } from '../../core/services/api.service';
-import { Observable } from 'rxjs';
 import { ChannelState } from '../states/channel.state';
+import { SocketService } from '../../core/services/socket.service';
+import { User } from '../models/user.model';
 
 @Injectable({
     providedIn: 'root'
@@ -12,7 +13,9 @@ export class ChannelFacade {
     readonly currentChannel$ = this.channelState.currentChannel$;
     readonly loaderChannels$ = this.channelState.loaderChannels$;
 
-    constructor(private channelState: ChannelState, private apiService: ApiService) { }
+    constructor(private channelState: ChannelState, private apiService: ApiService, private socketService: SocketService) {
+        this.setupSocketListeners();
+    }
 
     loadChannels(serverId: number): void {
         this.channelState.loaderChannels$.next(true);
@@ -58,5 +61,47 @@ export class ChannelFacade {
 
     setCurrentChannel(channel: Channel): void {
         this.channelState.currentChannel$.next(channel);
+    }
+
+    joinChannel(channel: Channel, user: User): void {
+        if (!channel.connectedUsers?.some(u => u.id === user.id)) {
+            this.socketService.emit('joinChannel', { channelId: channel.id, user });
+            this.channelState.channels$.value?.forEach(channel => {
+                if (channel.id === channel.id) {
+                    channel.connectedUsers = [...(channel.connectedUsers || []), user];
+                    this.channelState.channels$.next(this.channelState.channels$.value);
+                }
+            });
+        }
+        this.setCurrentChannel(channel);
+    }
+
+    leaveChannel(channelId: number, userId: number): void {
+        this.socketService.emit('leaveChannel', { channelId, userId });
+    }
+
+    private setupSocketListeners(): void {
+        this.socketService.on('joinChannel').subscribe((response: any) => {
+            console.log('joinChannel', response);
+            this.channelState.channels$.value?.forEach(channel => {
+                console.log('channel', channel);
+                console.log('response', response);
+                if (channel.id === response.channelId) {
+                    if (!channel.connectedUsers?.some(u => u.id === response.user.id)) {
+                        channel.connectedUsers = [...(channel.connectedUsers || []), response.user];
+                        this.channelState.channels$.next(this.channelState.channels$.value);
+                    }
+                }
+            });
+        });
+
+        this.socketService.on('leaveChannel').subscribe(({ channelId, userId }) => {
+            console.log('leaveChannel', channelId, userId);
+            const currentChannel = this.channelState.currentChannel$.value;
+            if (currentChannel && currentChannel.id === channelId) {
+                currentChannel.connectedUsers = currentChannel.connectedUsers?.filter(u => u.id !== userId);
+                this.channelState.currentChannel$.next(currentChannel);
+            }
+        });
     }
 }

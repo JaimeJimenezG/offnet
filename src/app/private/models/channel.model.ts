@@ -1,4 +1,5 @@
 import { Server } from './server.model';
+import { User } from './user.model';
 
 export class Channel {
     id: number;
@@ -7,6 +8,7 @@ export class Channel {
     description: string | null;
     created_at: Date;
     server?: Server;
+    connectedUsers?: User[] = [];
 
     constructor(attrs: ChannelAttrs) {
         this.id = attrs.id;
@@ -15,6 +17,7 @@ export class Channel {
         this.description = attrs.description;
         this.created_at = new Date(attrs.created_at);
         this.server = attrs.server;
+        this.connectedUsers = attrs.connectedUsers || [];
     }
 
     json(): JSON {
@@ -29,6 +32,7 @@ export interface ChannelAttrs {
     description: string | null;
     created_at: string;
     server?: Server;
+    connectedUsers?: User[];
 }
 
 export interface NewChannelAttrs {

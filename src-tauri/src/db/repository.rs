@@ -1,12 +1,13 @@
 use std::sync::Arc;
 use crate::db::connection::DbPool;
-use super::repositories::{channel_repository::ChannelRepository, message_repository::MessageRepository, server_repository::ServerRepository, user_repository::UserRepository};
+use super::repositories::{channel_repository::ChannelRepository, message_repository::MessageRepository, server_repository::ServerRepository, user_repository::UserRepository, user_channel_repository::UserChannelRepository};
 
 pub struct Repository {
     pub users: Arc<UserRepository>,
     pub messages: Arc<MessageRepository>,
     pub servers: Arc<ServerRepository>,
     pub channels: Arc<ChannelRepository>,
+    pub user_channels: Arc<UserChannelRepository>,
 }
 
 impl Repository {
@@ -16,6 +17,7 @@ impl Repository {
             messages: Arc::new(MessageRepository::new(Arc::clone(&pool))),
             servers: Arc::new(ServerRepository::new(Arc::clone(&pool))),
             channels: Arc::new(ChannelRepository::new(Arc::clone(&pool))),
+            user_channels: Arc::new(UserChannelRepository::new(Arc::clone(&pool))),
         }
     }
 }

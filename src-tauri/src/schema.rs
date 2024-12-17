@@ -37,13 +37,25 @@ diesel::table! {
     }
 }
 
+diesel::table! {
+    users_channels (user_id, channel_id) {
+        user_id -> Integer,
+        channel_id -> Integer,
+        joined_at -> Timestamp,
+        name -> Text,
+    }
+}
+
 diesel::joinable!(channels -> servers (server_id));
 diesel::joinable!(messages -> channels (channel_id));
 diesel::joinable!(messages -> users (user_id));
+diesel::joinable!(users_channels -> channels (channel_id));
+diesel::joinable!(users_channels -> users (user_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
     channels,
     messages,
     servers,
     users,
+    users_channels,
 );

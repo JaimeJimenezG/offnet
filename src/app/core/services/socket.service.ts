@@ -14,7 +14,7 @@ export class SocketService {
 
   emit(eventName: string, data: any): void {
     this.socket.emit(eventName, data);
-    console.log(`Emitiendo evento: ${eventName} con datos: ${data}`);
+    console.log(`Emitiendo evento: ${eventName} con datos:`, data);
   }
 
   on(eventName: string): Observable<any> {

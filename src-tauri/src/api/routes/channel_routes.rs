@@ -7,7 +7,7 @@ use crate::models::channel::NewChannel;
 pub async fn get_channels(repo: web::Data<Arc<Repository>>) -> impl Responder {
     match repo.channels.get_channels() {
         Ok(channels) => {
-            println!("Canales obtenidos exitosamente: {:?}", channels);
+            println!("Canales con usuarios obtenidos exitosamente: {:?}", channels);
             HttpResponse::Ok().json(channels)
         },
         Err(e) => {
