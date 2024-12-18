@@ -50,9 +50,9 @@ Offnet es una aplicación de escritorio dedicada a ser una alternativa de chat d
    npm run tauri dev
    ```
 
-## 📦 Construcción
+## 📦 Build
 
-Para construir la aplicación para producción:
+Para hacer una build de la aplicación para producción:
 
 ```
 npm run tauri build
@@ -71,4 +71,4 @@ npm run tauri build
 
 ---
 
-Hecho con ❤️ por el equipo de Offnet
+Hecho con ❤️ por Jaime Jimenez
