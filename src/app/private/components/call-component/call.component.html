@@ -12,7 +12,21 @@
         @if (!isCallActive) {
           <button class="btn btn-primary" (click)="startCall()">Iniciar Llamada</button>
         } @else {
-          <button class="btn btn-error" (click)="endCall()">Finalizar Llamada</button>
+          <div class="control-buttons">
+            <button class="btn" [class.btn-error]="!(isAudioEnabled | async)" (click)="toggleAudio()">
+              <span class="material-icons-round">
+                {{ (isAudioEnabled | async) ? 'mic' : 'mic_off' }}
+              </span>
+            </button>
+            <button class="btn" [class.btn-error]="!(isVideoEnabled | async)" (click)="toggleVideo()">
+              <span class="material-icons-round">
+                {{ (isVideoEnabled | async) ? 'videocam' : 'videocam_off' }}
+              </span>
+            </button>
+            <button class="btn btn-error" (click)="endCall()">
+              <span class="material-icons-round">call_end</span>
+            </button>
+          </div>
         }
         @if (incomingCall$ | async) {
           <button class="btn btn-success" (click)="respondCall()">Responder</button>

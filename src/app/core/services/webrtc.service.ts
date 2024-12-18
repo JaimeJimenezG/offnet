@@ -11,6 +11,8 @@ export class WebrtcService {
   private remoteStream = new BehaviorSubject<MediaStream | null>(null);
   private incomingOffer: RTCSessionDescriptionInit | null = null;
   private incomingCall = new BehaviorSubject<boolean>(false);
+  public isAudioEnabled = new BehaviorSubject<boolean>(true);
+  public isVideoEnabled = new BehaviorSubject<boolean>(true);
 
   constructor(private socketService: SocketService) {
     this.setupSocketListeners();
@@ -32,7 +34,10 @@ export class WebrtcService {
 
   async startCall(): Promise<void> {
     try {
-      this.localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      this.localStream = await navigator.mediaDevices.getUserMedia({ 
+        video: this.isVideoEnabled.value,
+        audio: this.isAudioEnabled.value 
+      });
       this.peerConnection = new RTCPeerConnection();
   
       this.localStream.getTracks().forEach(track => {
@@ -81,7 +86,10 @@ export class WebrtcService {
 
     await this.peerConnection.setRemoteDescription(new RTCSessionDescription(this.incomingOffer));
 
-    this.localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    this.localStream = await navigator.mediaDevices.getUserMedia({ 
+      video: this.isVideoEnabled.value,
+      audio: this.isAudioEnabled.value 
+     });
     this.localStream.getTracks().forEach(track => {
       if (this.peerConnection && this.localStream) {
         this.peerConnection.addTrack(track, this.localStream);
@@ -136,5 +144,35 @@ export class WebrtcService {
     this.remoteStream.next(null);
     this.incomingCall.next(false);
     this.incomingOffer = null;
+  }
+
+  toggleAudio(): void {
+    if (this.localStream) {
+      const audioTrack = this.localStream.getAudioTracks()[0];
+      if (audioTrack) {
+        this.isAudioEnabled.next(!this.isAudioEnabled.value);
+        audioTrack.enabled = this.isAudioEnabled.value;
+      }
+    }
+  }
+
+  toggleVideo(): void {
+    if (this.localStream) {
+      const videoTrack = this.localStream.getVideoTracks()[0];
+      if (videoTrack) {
+        this.isVideoEnabled.next(!this.isVideoEnabled.value);
+        videoTrack.enabled = this.isVideoEnabled.value;
+      }
+    }
+  }
+
+  getLocalStream(): Promise<MediaStream | null> {
+    if (!this.localStream && this.isVideoEnabled.value) {
+      return navigator.mediaDevices.getUserMedia({
+        video: this.isVideoEnabled.value,
+        audio: this.isAudioEnabled.value
+      });
+    }
+    return Promise.resolve(this.localStream);
   }
 }

@@ -28,6 +28,9 @@ import { Router } from '@angular/router';
     @ViewChild('localVideo') localVideo!: ElementRef<HTMLVideoElement>;
     @ViewChild('remoteVideo') remoteVideo!: ElementRef<HTMLVideoElement>;
   
+    isAudioEnabled = this.webrtcService.isAudioEnabled;
+    isVideoEnabled = this.webrtcService.isVideoEnabled;
+  
     constructor(
       private webrtcService: WebrtcService,
       private router: Router
@@ -46,9 +49,8 @@ import { Router } from '@angular/router';
       this.isCallActive = true;
       console.log('Iniciando llamada...');
       await this.webrtcService.startCall();
-      const localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
       if (this.localVideo && this.localVideo.nativeElement) {
-        this.localVideo.nativeElement.srcObject = localStream;
+        this.localVideo.nativeElement.srcObject = await this.webrtcService.getLocalStream();
         console.log('Stream local asignado al elemento de video');
       }
     }
@@ -99,6 +101,22 @@ import { Router } from '@angular/router';
       }
       if (this.incomingCallSubscription) {
         this.incomingCallSubscription.unsubscribe();
+      }
+    }
+  
+    toggleAudio(): void {
+      this.webrtcService.toggleAudio();
+    }
+  
+    toggleVideo(): void {
+      this.webrtcService.toggleVideo();
+      this.isVideoEnabled = this.webrtcService.isVideoEnabled;
+      if (!this.isVideoEnabled && this.localVideo && this.localVideo.nativeElement) {
+        this.localVideo.nativeElement.srcObject = null;
+      } else if (this.isVideoEnabled && this.localVideo && this.localVideo.nativeElement) {
+        this.webrtcService.getLocalStream().then(stream => {
+          this.localVideo.nativeElement.srcObject = stream;
+        });
       }
     }
   }
